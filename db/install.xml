@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="mod/aivideoactivity/db" VERSION="20260302" COMMENT="XMLDB file for AI Video Activity module"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd">
+  <TABLES>
+    <TABLE NAME="aivideoactivity" COMMENT="AI Video Activity instances">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Course ID"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Activity name"/>
+        <FIELD NAME="intro" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Activity introduction"/>
+        <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="mediatype" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="video" SEQUENCE="false" COMMENT="Media type: video or audio"/>
+        <FIELD NAME="youtubeurl" TYPE="char" LENGTH="500" NOTNULL="false" SEQUENCE="false" COMMENT="YouTube video URL"/>
+        <FIELD NAME="audiourl" TYPE="char" LENGTH="1000" NOTNULL="false" SEQUENCE="false" COMMENT="Audio file URL for audio media type"/>
+        <FIELD NAME="transcripttext" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Video transcript text"/>
+        <FIELD NAME="watchmode" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="all" SEQUENCE="false" COMMENT="Watch requirement: all, seconds, none"/>
+        <FIELD NAME="watchseconds" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Seconds to watch when mode is seconds"/>
+        <FIELD NAME="grade" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="100" SEQUENCE="false" COMMENT="Maximum grade"/>
+        <FIELD NAME="maxattempts" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Max attempts (0=unlimited)"/>
+        <FIELD NAME="questioncount" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Number of questions"/>
+        <FIELD NAME="passinggrade" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Passing grade percentage"/>
+        <FIELD NAME="scoringmode" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Scoring mode: 0=retry until correct, 1=first attempt only"/>
+        <FIELD NAME="completionallcorrect" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Complete when all correct"/>
+        <FIELD NAME="completionpassgrade" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Complete when passing grade achieved"/>
+        <FIELD NAME="ccemail" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="CC email for notifications"/>
+        <FIELD NAME="voiceoverenabled" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether voiceover is enabled"/>
+        <FIELD NAME="voicelanguage" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="en-AU" SEQUENCE="false" COMMENT="Voice language code"/>
+        <FIELD NAME="voicegender" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="female" SEQUENCE="false" COMMENT="Voice gender"/>
+        <FIELD NAME="voicestyle" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="Aoede" SEQUENCE="false" COMMENT="Voice style/ID"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="showvideoduringquiz" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Show video above questions while student answers (1=yes, 0=no)"/>
+        <FIELD NAME="showchapterstamps" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Show clickable chapter timestamp link per question (1=yes, 0=no)"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="course" UNIQUE="false" FIELDS="course"/>
+      </INDEXES>
+    </TABLE>
+
+    <TABLE NAME="aivideoactivity_questions" COMMENT="Questions for video activity">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="aivideoactivityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="questionnumber" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="questiontext" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="answer1" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="answer2" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="answer3" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="answer4" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="correctanswer" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false" COMMENT="0-3"/>
+        <FIELD NAME="feedback1" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="feedback2" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="feedback3" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="feedback4" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="questiontype" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="mcq" SEQUENCE="false" COMMENT="Question type: mcq, truefalse, matching, ordering, columnsort, categorysort"/>
+        <FIELD NAME="questiondata" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Full question data as JSON for all question types"/>
+        <FIELD NAME="audiodata" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="JSON array of base64 audio for each answer"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="aivideoactivityid" TYPE="foreign" FIELDS="aivideoactivityid" REFTABLE="aivideoactivity" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="aivideoactivityid-questionnumber" UNIQUE="true" FIELDS="aivideoactivityid, questionnumber"/>
+      </INDEXES>
+    </TABLE>
+
+    <TABLE NAME="aivideoactivity_attempts" COMMENT="User attempts for video activity">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="aivideoactivityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="currentquestion" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="answers" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="JSON encoded answers"/>
+        <FIELD NAME="correctcount" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="totalcount" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="status" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="0=in progress, 1=completed"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timestarted" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timeended" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="aivideoactivityid" TYPE="foreign" FIELDS="aivideoactivityid" REFTABLE="aivideoactivity" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
+        <INDEX NAME="aivideoactivityid_userid" UNIQUE="false" FIELDS="aivideoactivityid, userid"/>
+      </INDEXES>
+    </TABLE>
+
+    <TABLE NAME="aivideoactivity_overrides" COMMENT="Per-user extra attempts overrides">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="aivideoactivityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="extraattempts" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="aivideoactivityid_fk" TYPE="foreign" FIELDS="aivideoactivityid" REFTABLE="aivideoactivity" REFFIELDS="id"/>
+        <KEY NAME="userid_fk" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="uniq_override" UNIQUE="true" FIELDS="aivideoactivityid, userid"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>
