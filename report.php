@@ -129,7 +129,7 @@ if (!empty($attemptuserids)) {
 }
 
 // Sort picker list.
-usort($picker, function($a, $b) {
+usort($picker, function ($a, $b) {
     $al = core_text::strtolower($a->lastname . ' ' . $a->firstname);
     $bl = core_text::strtolower($b->lastname . ' ' . $b->firstname);
     if ($al === $bl) {
@@ -173,7 +173,7 @@ echo html_writer::end_div();
 
 // User picker JS.
 $js = <<<JS
-(function(){
+(function (){
   var input = document.getElementById('va-userinput');
   var dataEl = document.getElementById('va-user-map');
   if (!input || !dataEl) return;
@@ -190,13 +190,13 @@ $js = <<<JS
       if ((map[i].label || '').toLowerCase() === lower) { window.location = map[i].url; return true; }
     }
     // Single partial match.
-    var matches = map.filter(function(m){ return (m.label || '').toLowerCase().indexOf(lower) !== -1; });
+    var matches = map.filter(function (m){ return (m.label || '').toLowerCase().indexOf(lower) !== -1; });
     if (matches.length === 1) { window.location = matches[0].url; return true; }
     return false;
   }
 
-  input.addEventListener('change', function(){ gotoForValue(input.value); });
-  input.addEventListener('keydown', function(e){
+  input.addEventListener('change', function (){ gotoForValue(input.value); });
+  input.addEventListener('keydown', function (e){
     if (e.key === 'Enter') { if (gotoForValue(input.value)) { e.preventDefault(); } }
   });
 })();
@@ -227,7 +227,7 @@ $basemax = isset($videoactivity->maxattempts) ? (int)$videoactivity->maxattempts
 // Load per-user overrides.
 $extrabyuser = [];
 if (!empty($attempts)) {
-    $userids = array_values(array_unique(array_map(function($a) { return (int)$a->userid; }, $attempts)));
+    $userids = array_values(array_unique(array_map(function ($a) { return (int)$a->userid; }, $attempts)));
     if (!empty($userids)) {
         list($insql, $inparams) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
         $ovrs = $DB->get_records_select('aivideoactivity_overrides',

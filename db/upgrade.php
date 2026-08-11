@@ -1092,7 +1092,7 @@ function xmldb_aivideoactivity_upgrade($oldversion) {
     //   savepoint covers both gaps as a no-op marker. (4) Stale v1.0.113 + v1.0.114
     //   ZIPs removed; v1.0.115 ZIP rebuilt. (5) PluginAuditPage.tsx audit row
     //   updated. AMD JS audit ran clean: videoactivity.js triple-match holds
-    //   (src=build=build.min identical MD5) and define([jquery], function($) {})
+    //   (src=build=build.min identical MD5) and define([jquery], function ($) {})
     //   format verified — no ES module syntax. No DB schema changes. AMD-only
     //   rebuild not required (no JS changes this release). version.php →
     //   2026050300115.

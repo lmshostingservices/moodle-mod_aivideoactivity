@@ -115,7 +115,7 @@ $namefields = 'u.id, u.firstname, u.lastname, u.firstnamephonetic, u.lastnamepho
 $users = get_enrolled_users($context, 'mod/aivideoactivity:view', 0,
     $namefields, 'u.lastname, u.firstname');
 
-$userids = array_map(function($u) {
+$userids = array_map(function ($u) {
     return $u->id;
 }, $users);
 

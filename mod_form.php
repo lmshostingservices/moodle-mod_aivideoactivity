@@ -30,7 +30,6 @@ require_once($CFG->dirroot . '/course/moodleform_mod.php');
  * Module instance settings form.
  */
 class mod_aivideoactivity_mod_form extends moodleform_mod {
-
     /**
      * Defines forms elements.
      */

@@ -28,7 +28,6 @@ defined('MOODLE_INTERNAL') || die();
  * Structure step to restore one aivideoactivity activity.
  */
 class restore_aivideoactivity_activity_structure_step extends restore_activity_structure_step {
-
     protected function define_structure() {
         $paths = [];
         $userinfo = $this->get_setting_value('userinfo');

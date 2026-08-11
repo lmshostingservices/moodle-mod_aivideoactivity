@@ -30,7 +30,6 @@ require_once($CFG->dirroot . '/mod/aivideoactivity/backup/moodle2/backup_aivideo
  * Backup task that provides all the settings and steps to perform one complete backup of the activity.
  */
 class backup_aivideoactivity_activity_task extends backup_activity_task {
-
     protected function define_my_settings() {
         // No particular settings for this activity.
     }

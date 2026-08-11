@@ -83,7 +83,7 @@ $sesskey = sesskey();
 </div>
 
 <script>
-(function() {
+(function () {
     var ajaxUrl = '<?php echo $ajaxurl->out(false); ?>';
     var sesskey = '<?php echo $sesskey; ?>';
     var countBtn = document.getElementById('va-bulkregen-count-btn');
@@ -126,13 +126,13 @@ $sesskey = sesskey();
             }
         }
         return fetch(ajaxUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
-            .then(function(r) { return r.json(); });
+            .then(function (r) { return r.json(); });
     }
 
-    countBtn.addEventListener('click', function() {
+    countBtn.addEventListener('click', function () {
         countBtn.disabled = true;
         statusEl.textContent = 'Counting Card Select questions...';
-        postForm('bulkregencount').then(function(resp) {
+        postForm('bulkregencount').then(function (resp) {
             countBtn.disabled = false;
             if (!resp.ok) {
                 statusEl.textContent = 'Error: ' + (resp.error || 'unknown');
@@ -154,7 +154,7 @@ $sesskey = sesskey();
                 lastId = 0;
                 updateProgress();
             }
-        }).catch(function(err) {
+        }).catch(function (err) {
             countBtn.disabled = false;
             statusEl.textContent = 'Network error: ' + err.message;
         });
@@ -169,7 +169,7 @@ $sesskey = sesskey();
             statusEl.innerHTML += '<br><strong>Stopped.</strong> ' + processed + ' question(s) upgraded so far.';
             return;
         }
-        postForm('bulkregenstep', { lastid: lastId }).then(function(resp) {
+        postForm('bulkregenstep', { lastid: lastId }).then(function (resp) {
             if (!resp.ok && !resp.done) {
                 logLine('Error on id=' + (resp.lastid || '?') + ': ' + (resp.error || 'unknown') + ' — continuing.');
                 if (resp.lastid) lastId = parseInt(resp.lastid, 10);
@@ -193,13 +193,13 @@ $sesskey = sesskey();
             logLine(resp.message || ('Upgraded id=' + resp.lastid));
             // Tiny pause to keep the browser UI responsive and avoid hammering the SaaS.
             setTimeout(processNext, 200);
-        }).catch(function(err) {
+        }).catch(function (err) {
             logLine('Network error: ' + err.message + ' — retrying in 5s.');
             setTimeout(processNext, 5000);
         });
     }
 
-    runBtn.addEventListener('click', function() {
+    runBtn.addEventListener('click', function () {
         if (totalLegacy === 0) return;
         runBtn.disabled = true;
         countBtn.disabled = true;
@@ -211,7 +211,7 @@ $sesskey = sesskey();
         processNext();
     });
 
-    stopBtn.addEventListener('click', function() {
+    stopBtn.addEventListener('click', function () {
         stopRequested = true;
         stopBtn.disabled = true;
         logLine('Stop requested...');
