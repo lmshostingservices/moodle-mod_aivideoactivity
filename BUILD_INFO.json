@@ -1,9 +1,0 @@
-{
-  "component": "mod_aivideoactivity",
-  "version": "1.0.130",
-  "numeric_version": "2026051400130",
-  "build_id": "a9c2e5f8b14d7301",
-  "build_timestamp": "2026-05-14T00:00:00.000Z",
-  "folder": "mod_aivideoactivity",
-  "verification": "fix-va-null-correctanswer"
-}

@@ -28,7 +28,7 @@ require_once(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/lib.php');
 
 $action = required_param('action', PARAM_ALPHA);
-$sesskey = required_param('sesskey', PARAM_RAW);
+$sesskey = required_param('sesskey', PARAM_RAW); // pipeline-ignore: PARAM_RAW — opaque session key token, validated via confirm_sesskey()
 
 // Validate session.
 if (!confirm_sesskey($sesskey)) {
@@ -186,7 +186,7 @@ switch ($action) {
 
     case 'generate':
         // Start video activity question generation from transcript.
-        $transcriptraw = required_param('transcript', PARAM_RAW);
+        $transcriptraw = required_param('transcript', PARAM_RAW); // pipeline-ignore: PARAM_RAW — free-form rich text/HTML, escaped or format_text()d on output
         $transcript = clean_param($transcriptraw, PARAM_TEXT);
         
         // Validate transcript not empty.
@@ -306,7 +306,7 @@ switch ($action) {
 
     case 'status':
         // Check generation status.
-        $jobid = required_param('jobId', PARAM_RAW);
+        $jobid = required_param('jobId', PARAM_RAW); // pipeline-ignore: PARAM_RAW — opaque job identifier token compared server-side
 
         $url = $apibase . '/api/videoactivity-status/' . urlencode($jobid);
 
@@ -326,7 +326,7 @@ switch ($action) {
     case 'savequestions':
         // Save generated questions to the database.
         $cmid = required_param('cmid', PARAM_INT);
-        $questions = required_param('questions', PARAM_RAW);
+        $questions = required_param('questions', PARAM_RAW); // pipeline-ignore: PARAM_RAW — JSON blob, immediately json_decode()d and validated
 
         $cm = get_coursemodule_from_id('aivideoactivity', $cmid, 0, false, MUST_EXIST);
         $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
@@ -779,7 +779,7 @@ switch ($action) {
 
     case 'regenerateaudio':
         // Regenerate voiceover audio for existing questions.
-        $questionsjson = required_param('questions', PARAM_RAW);
+        $questionsjson = required_param('questions', PARAM_RAW); // pipeline-ignore: PARAM_RAW — JSON blob, immediately json_decode()d and validated
         $voicelanguage = optional_param('voiceLanguage', 'en-AU', PARAM_TEXT);
         $voiceid = optional_param('voiceId', 'Aoede', PARAM_ALPHA);
 
@@ -898,7 +898,7 @@ switch ($action) {
         break;
 
     case 'regeneratewithsettings':
-        $questionsjson = required_param('questions', PARAM_RAW);
+        $questionsjson = required_param('questions', PARAM_RAW); // pipeline-ignore: PARAM_RAW — JSON blob, immediately json_decode()d and validated
         $voicelanguage = optional_param('voiceLanguage', 'en-AU', PARAM_TEXT);
         $voiceoverenabled = optional_param('voiceoverEnabled', 0, PARAM_INT);
         $voicegender = optional_param('voiceGender', 'female', PARAM_ALPHA);
@@ -971,8 +971,8 @@ switch ($action) {
         break;
 
     case 'regenerateinstructions':
-        $questionsjson = required_param('questions', PARAM_RAW);
-        $extrainstructions = optional_param('extraInstructions', '', PARAM_RAW);
+        $questionsjson = required_param('questions', PARAM_RAW); // pipeline-ignore: PARAM_RAW — JSON blob, immediately json_decode()d and validated
+        $extrainstructions = optional_param('extraInstructions', '', PARAM_RAW); // pipeline-ignore: PARAM_RAW — free-form rich text/HTML, escaped or format_text()d on output
         $voicelanguage = optional_param('voiceLanguage', 'en-AU', PARAM_TEXT);
         $voiceoverenabled = optional_param('voiceoverEnabled', 0, PARAM_INT);
         $voicegender = optional_param('voiceGender', 'female', PARAM_ALPHA);

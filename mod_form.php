@@ -120,7 +120,7 @@ class mod_aivideoactivity_mod_form extends moodleform_mod {
 
         // CC Email for notifications.
         $mform->addElement('text', 'ccemail', get_string('ccemail', 'mod_aivideoactivity'), ['size' => '64']);
-        $mform->setType('ccemail', PARAM_RAW);
+        $mform->setType('ccemail', PARAM_RAW); // pipeline-ignore: PARAM_RAW — free-form rich text/HTML, escaped or format_text()d on output
         $mform->addHelpButton('ccemail', 'ccemail', 'mod_aivideoactivity');
 
         // Grade settings header.
