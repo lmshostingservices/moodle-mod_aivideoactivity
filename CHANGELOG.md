@@ -1,3 +1,12 @@
+# Changelog
+
+## 1.0.137 (2026-10-15)
+
+- Restore release evidence with version-aligned archive metadata and an immutable new release identity.
+- Preserve all runtime code from the previously distributed 1.0.136 archive.
+
+## Historical archive notes
+
 # Changelog - AI Video Activity Module
 
 All notable changes to this plugin will be documented in this file.
