@@ -212,7 +212,7 @@ class mod_aivideoactivity_mod_form extends moodleform_mod {
         }
 
         // Prepare audio file draft area for filepicker.
-        if (isset($defaultvalues['instance'])) {
+        if (!empty($defaultvalues['instance'])) {
             $cm = get_coursemodule_from_instance('aivideoactivity', $defaultvalues['instance'], $defaultvalues['course']);
             if ($cm) {
                 $context = context_module::instance($cm->id);
@@ -230,7 +230,7 @@ class mod_aivideoactivity_mod_form extends moodleform_mod {
         }
 
         // Load gradepass from the gradebook grade_items table (authoritative source).
-        if (isset($defaultvalues['instance'])) {
+        if (!empty($defaultvalues['instance'])) {
             global $CFG;
             require_once($CFG->libdir . '/gradelib.php');
             $gradeitem = grade_item::fetch([

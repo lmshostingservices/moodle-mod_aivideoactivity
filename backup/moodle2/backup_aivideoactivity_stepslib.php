@@ -80,6 +80,11 @@ class backup_aivideoactivity_activity_structure_step extends backup_activity_str
         $attempt->annotate_ids('user', 'userid');
         $override->annotate_ids('user', 'userid');
 
+        // Intro images and the uploaded audio file (audio mode, itemid 0) must travel with the activity,
+        // otherwise an audio-mode activity restores with no recording.
+        $videoactivity->annotate_files('mod_aivideoactivity', 'intro', null);
+        $videoactivity->annotate_files('mod_aivideoactivity', 'audiofile', null);
+
         return $this->prepare_activity_structure($videoactivity);
     }
 }

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.139 (2026-11-05)
+
+- Fixed: audio-mode activities lost their uploaded recording on backup, restore and course import. The backup now includes the `audiofile` and `intro` file areas.
+- Fixed: adding a new AI Video Activity failed on PostgreSQL sites with "invalid input syntax for type bigint" because the settings form looked up an empty instance id. The audio file and pass-grade lookups now run only when editing an existing activity.
+
 ## 1.0.137 (2026-10-15)
 
 - Restore release evidence with version-aligned archive metadata and an immutable new release identity.
