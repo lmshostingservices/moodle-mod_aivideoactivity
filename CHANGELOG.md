@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.140 (2026-11-06)
+
+- Fixed: true or false questions ignored the "Retry until correct" scoring mode. After a wrong answer, students saw the correct answer and a Next button, so they moved on without the point, could not reach 100%, and the next level stayed locked unless they retook the whole section. A wrong answer now shows "Not quite. Try again." with a Try again button, without revealing the answer. The student moves on only after answering correctly. "First attempt only" works as before.
+
 ## 1.0.139 (2026-11-05)
 
 - Fixed: audio-mode activities lost their uploaded recording on backup, restore and course import. The backup now includes the `audiofile` and `intro` file areas.

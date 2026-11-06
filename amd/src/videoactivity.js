@@ -3695,6 +3695,7 @@ define(['jquery'], function($) {
                 var correctCount = 0;
                 var showingExplanation = false;
                 var lastAnswerCorrect = null;
+                var stmtMissed = {};
 
                 function renderTFState() {
                     var html = '<div class="va-truefalse-container">';
@@ -3707,7 +3708,20 @@ define(['jquery'], function($) {
                         html += '<div class="va-tfs-card" id="va-tfs-card">';
                         html += '<div class="va-tfs-statement">' + escapeHtml(stmt.text) + '</div>';
 
-                        if (showingExplanation) {
+                        // FIX-VA-TF-RETRY (v1.0.140): in "Retry until correct" mode (scoringMode 0) a wrong
+                        // answer must not reveal the correct answer or let the student move on. They get
+                        // "Not quite" plus a Try again button, and only a correct answer shows Next. Before
+                        // this fix true/false always showed Next, so students lost the point, could not
+                        // reach 100% and the next level stayed locked.
+                        var retryWrong = showingExplanation && !lastAnswerCorrect && config.scoringMode !== 1;
+                        if (retryWrong) {
+                            html += '<div class="va-tfs-explanation">';
+                            html += '<div class="va-tfs-result va-tfs-result-incorrect">';
+                            html += '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+                            html += ' Not quite. Try again.';
+                            html += '</div>';
+                            html += '</div>';
+                        } else if (showingExplanation) {
                             html += '<div class="va-tfs-explanation">';
                             if (lastAnswerCorrect) {
                                 html += '<div class="va-tfs-result va-tfs-result-correct">';
@@ -3744,6 +3758,10 @@ define(['jquery'], function($) {
                             html += ' True';
                             html += '</button>';
                             html += '</div>';
+                        } else if (retryWrong) {
+                            html += '<div class="va-tfs-buttons">';
+                            html += '<button class="va-btn va-btn-primary" id="va-tfs-retry">Try again</button>';
+                            html += '</div>';
                         } else {
                             html += '<div class="va-tfs-buttons">';
                             html += '<button class="va-btn va-btn-primary" id="va-tfs-continue">';
@@ -3763,6 +3781,16 @@ define(['jquery'], function($) {
                     var trueBtn = document.getElementById('va-tfs-true');
                     if (trueBtn) {
                         trueBtn.addEventListener('click', function() { handleTFAnswer(true); });
+                    }
+
+                    var retryBtn = document.getElementById('va-tfs-retry');
+                    if (retryBtn) {
+                        retryBtn.addEventListener('click', function() {
+                            // Same statement again; nothing is counted until it is answered correctly.
+                            showingExplanation = false;
+                            lastAnswerCorrect = null;
+                            renderTFState();
+                        });
                     }
 
                     var continueBtn = document.getElementById('va-tfs-continue');
@@ -3787,8 +3815,11 @@ define(['jquery'], function($) {
                         lastAnswerCorrect = correct;
                         if (correct) {
                             playCorrectSound();
-                            correctCount++;
+                            if (config.scoringMode !== 1 || !stmtMissed[currentStmtIdx]) {
+                                correctCount++;
+                            }
                         } else {
+                            stmtMissed[currentStmtIdx] = true;
                             playIncorrectSound();
                             var card = document.getElementById('va-tfs-card');
                             if (card) card.classList.add('va-shake');
