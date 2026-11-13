@@ -101,6 +101,25 @@ if (empty($apikey)) {
 
 header('Content-Type: application/json');
 
+/**
+ * Tell Client Portal (when installed) what LMS Labs charged for a call, so the site owner can bill the client.
+ * Only the service's own figure is used: prices here depend on the transcript length and settings.
+ *
+ * @param context $context
+ * @param mixed $reply decoded reply
+ * @param string $description
+ * @param string $ref job id, so a polled job is counted once
+ * @return void
+ */
+function aivideoactivity_report_usage($context, $reply, $description, $ref = '') {
+    global $USER;
+    if (method_exists('\\local_clientportal\\api', 'record_lmslabs_call')) {
+        $contextid = $context ? (int)$context->id : (int)context_system::instance()->id;
+        \local_clientportal\api::record_lmslabs_call((int)$USER->id, $contextid, 'mod_aivideoactivity', $reply, 0,
+            $description, (string)$ref);
+    }
+}
+
 switch ($action) {
     case 'getcredits':
         // Debug: Check if credentials are configured (including whitespace-only check).
@@ -292,6 +311,9 @@ switch ($action) {
 
         if ($httpcode === 200) {
             $result = json_decode($response, true);
+            if (is_array($result) && empty($result['jobId'])) {
+                aivideoactivity_report_usage($context, $result, 'Video questions');
+            }
             if ($result === null) {
                 echo json_encode(['ok' => false, 'error' => 'Invalid API response']);
             } else {
@@ -317,6 +339,10 @@ switch ($action) {
 
         if ($httpcode === 200) {
             $result = json_decode($response, true);
+            if (is_array($result) && in_array($result['status'] ?? '', ['done', 'complete', 'completed'], true)) {
+                // A finished job: Client Portal (when installed) bills it once.
+                aivideoactivity_report_usage($context, $result, 'Video questions', (string)$jobid);
+            }
             echo json_encode($result);
         } else {
             echo json_encode(['ok' => false, 'error' => 'Failed to check status']);
@@ -820,6 +846,9 @@ switch ($action) {
             }
 
             $ra_result    = json_decode($ra_raw, true);
+            if ($ra_httpcode === 200) {
+                aivideoactivity_report_usage($context, $ra_result, 'Voiceover regenerated');
+            }
             $ra_transient = ($ra_httpcode === 429 || $ra_httpcode === 503 ||
                 ($ra_httpcode === 200 && $ra_result !== null &&
                  isset($ra_result['ok']) && $ra_result['ok'] === false &&
@@ -889,6 +918,9 @@ switch ($action) {
         }
 
         $tts_result = json_decode($tts_raw, true);
+        if ($tts_httpcode === 200) {
+            aivideoactivity_report_usage($context, $tts_result, 'Voice clip');
+        }
         if ($tts_httpcode === 200 && $tts_result !== null) {
             echo json_encode($tts_result);
         } else {
@@ -952,6 +984,9 @@ switch ($action) {
         $rws_info     = $rws_ch->get_info();
         $rws_httpcode = (int)$rws_info['http_code'];
         $rws_result   = json_decode($rws_raw, true);
+        if ($rws_httpcode === 200) {
+            aivideoactivity_report_usage($context, $rws_result, 'Questions regenerated');
+        }
 
         if ($rws_error) {
             echo json_encode(['ok' => false, 'error' => 'Connection error: ' . $rws_error]);
@@ -1029,6 +1064,9 @@ switch ($action) {
         $ri_info     = $ri_ch->get_info();
         $ri_httpcode = (int)$ri_info['http_code'];
         $ri_result   = json_decode($ri_raw, true);
+        if ($ri_httpcode === 200) {
+            aivideoactivity_report_usage($context, $ri_result, 'Questions regenerated');
+        }
 
         if ($ri_error) {
             echo json_encode(['ok' => false, 'error' => 'Connection error: ' . $ri_error]);
@@ -1235,6 +1273,9 @@ switch ($action) {
         }
 
         $bs_resp = json_decode($bs_raw, true);
+        if ($bs_httpcode === 200) {
+            aivideoactivity_report_usage($context, $bs_resp, 'Voiceover regenerated');
+        }
         if (!is_array($bs_resp) || empty($bs_resp['ok']) || empty($bs_resp['questions']) || empty($bs_resp['questions'][0])) {
             echo json_encode([
                 'ok' => false,

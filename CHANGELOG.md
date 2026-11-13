@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.141 (2026-11-13)
+
+### Added
+- Works with Client Portal 2.0.1 and later: each LMS Labs AI call made in a client's course, or by a client's people, is reported to the portal with the credits it used, so the site owner can see and invoice each client's usage. The service's own figure is used when its reply gives one; otherwise the plugin's published price. Calls that fail and polled jobs are never counted twice. Nothing changes on sites without Client Portal.
+
 ## 1.0.140 (2026-11-06)
 
 - Fixed: true or false questions ignored the "Retry until correct" scoring mode. After a wrong answer, students saw the correct answer and a Next button, so they moved on without the point, could not reach 100%, and the next level stayed locked unless they retook the whole section. A wrong answer now shows "Not quite. Try again." with a Try again button, without revealing the answer. The student moves on only after answering correctly. "First attempt only" works as before.
