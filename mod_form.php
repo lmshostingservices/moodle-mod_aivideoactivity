@@ -158,7 +158,7 @@ class mod_aivideoactivity_mod_form extends moodleform_mod {
      */
     public function add_completion_rules() {
         $mform = $this->_form;
-        $suffix = $this->get_suffix();
+        $suffix = method_exists($this, 'get_suffix') ? $this->get_suffix() : '';
 
         $mform->addElement('checkbox', 'completionallcorrect' . $suffix, 
             get_string('completionallcorrect', 'mod_aivideoactivity'));
@@ -175,7 +175,7 @@ class mod_aivideoactivity_mod_form extends moodleform_mod {
      * @return bool True if any completion rule is enabled.
      */
     public function completion_rule_enabled($data) {
-        $suffix = $this->get_suffix();
+        $suffix = method_exists($this, 'get_suffix') ? $this->get_suffix() : '';
         return !empty($data['completionallcorrect' . $suffix]);
     }
 
@@ -186,7 +186,7 @@ class mod_aivideoactivity_mod_form extends moodleform_mod {
      */
     public function data_postprocessing($data) {
         parent::data_postprocessing($data);
-        $suffix = $this->get_suffix();
+        $suffix = method_exists($this, 'get_suffix') ? $this->get_suffix() : '';
         $data->completionallcorrect = !empty($data->{"completionallcorrect$suffix"}) ? 1 : 0;
 
         // Normalise gradepass to a float for the gradebook.
@@ -202,7 +202,7 @@ class mod_aivideoactivity_mod_form extends moodleform_mod {
      */
     public function data_preprocessing(&$defaultvalues) {
         parent::data_preprocessing($defaultvalues);
-        $suffix = $this->get_suffix();
+        $suffix = method_exists($this, 'get_suffix') ? $this->get_suffix() : '';
         if (isset($defaultvalues['completionallcorrect'])) {
             $defaultvalues["completionallcorrect$suffix"] = $defaultvalues['completionallcorrect'];
         }

@@ -24,10 +24,23 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-
+/**
+ * Upgrades the aivideoactivity database and data.
+ *
+ * @param int $oldversion The version being upgraded from.
+ * @return bool
+ */
 function xmldb_aivideoactivity_upgrade($oldversion) {
     if ($oldversion < 2026072300) {
         upgrade_mod_savepoint(true, 2026072300, 'aivideoactivity');
     }
+
+    if ($oldversion < 2026112400) {
+        // The custom completion rule could never complete before this release. Re-check learners
+        // who already meet it, in the background so large sites upgrade quickly.
+        \core\task\manager::queue_adhoc_task(new \mod_aivideoactivity\task\recalculate_completion(), true);
+        upgrade_mod_savepoint(true, 2026112400, 'aivideoactivity');
+    }
+
     return true;
 }

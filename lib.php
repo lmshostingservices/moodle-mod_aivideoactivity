@@ -414,8 +414,8 @@ function aivideoactivity_get_coursemodule_info($coursemodule) {
     }
 
     // Populate custom completion rules.
-    if ($videoactivity->completionallcorrect) {
-        $info->customdata['customcompletionrules']['completionallcorrect'] = $videoactivity->completionallcorrect;
+    if ($coursemodule->completion == COMPLETION_TRACKING_AUTOMATIC) {
+        $info->customdata['customcompletionrules']['completionallcorrect'] = (int) $videoactivity->completionallcorrect;
     }
 
     return $info;
