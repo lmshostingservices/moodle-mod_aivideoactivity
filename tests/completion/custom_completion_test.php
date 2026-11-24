@@ -16,6 +16,8 @@
 
 namespace mod_aivideoactivity\completion;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(\mod_aivideoactivity\completion\custom_completion::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\mod_aivideoactivity\task\recalculate_completion::class)]
 /**
  * Tests for the AI Video Activity "all answers correct" completion rule.
  *
@@ -26,8 +28,6 @@ namespace mod_aivideoactivity\completion;
  * @covers     \mod_aivideoactivity\completion\custom_completion
  * @covers     \mod_aivideoactivity\task\recalculate_completion
  */
-#[\PHPUnit\Framework\Attributes\CoversClass(\mod_aivideoactivity\completion\custom_completion::class)]
-#[\PHPUnit\Framework\Attributes\CoversClass(\mod_aivideoactivity\task\recalculate_completion::class)]
 final class custom_completion_test extends \advanced_testcase {
     /**
      * Creates a course, a learner and an activity with three questions.
