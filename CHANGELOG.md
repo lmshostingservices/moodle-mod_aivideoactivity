@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.142 (2026-11-24)
+
+- Fixed: "All answers must be correct" never completed the activity on Moodle 4.x and 5.x, so learners stayed stuck after a perfect attempt. The rule is now a proper Moodle completion rule: it completes after a finished attempt with every question right, and it shows on the activity and in completion reports.
+- Fixed: the activity settings page failed on Moodle 4.0 to 4.2 (it called a form method that only exists from 4.3).
+- Added a test data generator, so the activity can be created by Moodle's automated tests and by demo and course-building tools. Tests cover creating, listing, deleting, backing up and restoring the activity.
+
 ## 1.0.141 (2026-11-13)
 
 ### Added
