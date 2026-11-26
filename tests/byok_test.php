@@ -28,6 +28,8 @@ use mod_aivideoactivity\local\byok\engine;
  * @package    mod_aivideoactivity
  * @copyright  2026 LMS Hosting Services
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers     \mod_aivideoactivity\byok
+ * @covers     \mod_aivideoactivity\local\byok\engine
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(byok::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(engine::class)]
