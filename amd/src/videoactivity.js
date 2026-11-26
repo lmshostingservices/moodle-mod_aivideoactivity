@@ -512,8 +512,45 @@ define(['jquery'], function($) {
             // TEACHER: CREDIT LOADING
             // ==========================================
 
+            // Bring your own AI: which work runs on the site's own AI (no LMS Labs credits).
+            /**
+             * Whether questions are written on the site's own AI.
+             *
+             * @returns {boolean}
+             */
+            function ownText() {
+                return !!(config.byok && config.byok.text);
+            }
+
+            /**
+             * Whether narration is on the site's own AI.
+             *
+             * @returns {boolean}
+             */
+            function ownVoice() {
+                return !!(config.byok && config.byok.voice);
+            }
+
+            /**
+             * A Bring your own AI string, with {name} placeholders filled in.
+             *
+             * @param {string} name
+             * @param {Object} values
+             * @returns {string}
+             */
+            function byokString(name, values) {
+                var text = (config.byokStrings && config.byokStrings[name]) || '';
+                Object.keys(values || {}).forEach(function(key) {
+                    text = text.split('{' + key + '}').join(String(values[key]));
+                });
+                return text;
+            }
+
             function fetchCredits() {
                 ajaxCall('getcredits').done(function(response) {
+                    if (response.ok && response.credits === null) {
+                        return;
+                    }
                     if (response.ok) {
                         var creditText = response.credits;
                         var el = document.getElementById('va-credit-balance');
@@ -681,6 +718,14 @@ define(['jquery'], function($) {
                 var voiceoverOn = $('#va-voiceover-toggle').is(':checked');
                 var numQuestions = parseInt($('#va-num-questions').val(), 10) || 10;
                 var voiceoverCost = voiceoverOn ? numQuestions : 0;
+                // Bring your own AI: work on the site's own AI costs no LMS Labs credits.
+                var ownPart = ownText() || (voiceoverOn && ownVoice());
+                if (ownText()) {
+                    baseCost = 0;
+                }
+                if (voiceoverOn && ownVoice()) {
+                    voiceoverCost = 0;
+                }
                 var cost = baseCost + voiceoverCost;
 
                 var formulaEl = document.getElementById('va-credit-formula');
@@ -692,7 +737,16 @@ define(['jquery'], function($) {
                 var transcriptCreditCost = document.getElementById('va-transcript-credit-cost');
 
                 var formulaText;
-                if (wordCount > 0) {
+                if (wordCount > 0 && ownPart) {
+                    var values = {cost: cost, words: wordCount, questions: numQuestions};
+                    if (cost === 0) {
+                        formulaText = byokString('formula', values);
+                    } else if (ownText()) {
+                        formulaText = byokString('voiceformula', values);
+                    } else {
+                        formulaText = byokString('textformula', values);
+                    }
+                } else if (wordCount > 0) {
                     if (voiceoverOn) {
                         formulaText = cost + ' credits (' + wordCount + ' words = ' + baseCost + ' credits + ' + voiceoverCost + ' voiceover credits for ' + numQuestions + ' questions)';
                     } else {
@@ -710,7 +764,10 @@ define(['jquery'], function($) {
                 if (transcriptCreditCost) { transcriptCreditCost.textContent = cost; }
 
                 var transcriptCostSpan = transcriptCostInfo ? transcriptCostInfo.querySelector('span') : null;
-                if (transcriptCostSpan && wordCount > 0) {
+                if (transcriptCostSpan && wordCount > 0 && ownPart) {
+                    transcriptCostSpan.innerHTML = '<strong>' + wordCount + '</strong> words &mdash; ' + (cost === 0
+                        ? escapeHtml(byokString('nocredits')) : '<strong>' + cost + '</strong> credits');
+                } else if (transcriptCostSpan && wordCount > 0) {
                     var costDesc = '<strong>' + wordCount + '</strong> words &mdash; <strong>' + cost + '</strong> credits (5 per 150 words';
                     if (voiceoverOn) {
                         costDesc += ' + 1 per question voiceover';
@@ -1875,7 +1932,9 @@ define(['jquery'], function($) {
             function updateRegenCountDisplay() {
                 var remaining = Math.max(0, 3 - regenerationCount);
                 var countText = '';
-                if (regenerationCount === 0) {
+                if (ownText()) {
+                    countText = byokString('regen');
+                } else if (regenerationCount === 0) {
                     countText = '3 free regenerations remaining';
                 } else if (remaining > 0) {
                     countText = remaining + ' free regeneration' + (remaining !== 1 ? 's' : '') + ' remaining';
@@ -1897,7 +1956,8 @@ define(['jquery'], function($) {
                     return;
                 }
 
-                var isFree = regenerationCount < 3;
+                // Bring your own AI: rewrites on the site's own AI use no LMS Labs credits.
+                var isFree = regenerationCount < 3 || ownText();
                 if (!isFree) {
                     var voiceoverOn = $('#va-voiceover-toggle').is(':checked');
                     var creditsNeeded = voiceoverOn ? quizData.length * 2 : quizData.length;
@@ -2013,7 +2073,8 @@ define(['jquery'], function($) {
                     return;
                 }
 
-                var isFree = regenerationCount < 3;
+                // Bring your own AI: rewrites on the site's own AI use no LMS Labs credits.
+                var isFree = regenerationCount < 3 || ownText();
                 if (!isFree) {
                     var voiceoverOn = $('#va-voiceover-toggle').is(':checked');
                     var creditsNeeded = voiceoverOn ? quizData.length * 2 : quizData.length;
@@ -2123,7 +2184,8 @@ define(['jquery'], function($) {
             function handleSingleRegenerate(qIdx, $btn) {
                 if (!quizData || qIdx < 0 || qIdx >= quizData.length) return;
 
-                var isFree = regenerationCount < 3;
+                // Bring your own AI: rewrites on the site's own AI use no LMS Labs credits.
+                var isFree = regenerationCount < 3 || ownText();
                 if (!isFree) {
                     var voiceoverOn = $('#va-voiceover-toggle').is(':checked');
                     var creditsNeeded = voiceoverOn ? 2 : 1;

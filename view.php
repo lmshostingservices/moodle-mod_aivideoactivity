@@ -90,8 +90,10 @@ aivideoactivity_view($videoactivity, $course, $cm, $context);
 
 echo $OUTPUT->header();
 
-// Check configuration.
-if (empty($siteid) || empty($apikey)) {
+// Check configuration. Bring your own AI: with text on the site's own AI, questions are written without LMS Labs.
+$byokstate = \mod_aivideoactivity\byok::state();
+$hascredentials = !empty($siteid) && !empty($apikey);
+if (!$hascredentials && !$byokstate['text']) {
     echo $OUTPUT->notification(get_string('not_configured', 'mod_aivideoactivity'), 'warning');
     echo $OUTPUT->footer();
     return;
@@ -132,8 +134,25 @@ if ($cancreate) {
 
     ?>
     <div id="va-app" class="va-container">
+        <?php
+        // Bring your own AI: say which work runs on the site's own AI, and drop the credits badge when no
+        // LMS Labs credentials are set (nothing is charged to credits then).
+        $byokparts = array_keys(array_filter($byokstate));
+        if ($byokparts) {
+            echo html_writer::tag(
+                'div',
+                html_writer::tag('i', '', ['class' => 'fa fa-microchip', 'aria-hidden' => 'true']) .
+                    html_writer::span(get_string('byok:badge', 'mod_aivideoactivity'), 'va-byok-badge-label') .
+                    html_writer::span(
+                        get_string('byok:badge_' . implode('_', $byokparts), 'mod_aivideoactivity'),
+                        'va-byok-badge-detail'
+                    ),
+                ['class' => 'va-byok-badge', 'data-testid' => 'badge-byok']
+            );
+        }
+        ?>
         <!-- Credits Badge (Teachers Only) -->
-        <div class="va-credits-badge">
+        <div class="va-credits-badge"<?php echo $hascredentials ? '' : ' style="display: none;"'; ?>>
             <svg class="va-credits-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"/>
                 <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
@@ -551,7 +570,7 @@ if ($cancreate) {
                             <span id="va-credit-formula" class="va-credit-formula" data-testid="text-credit-formula"></span>
                             <span class="va-credit-cost-label">to generate content</span>
                         </div>
-                        <div class="va-credit-balance-box">
+                        <div class="va-credit-balance-box"<?php echo $hascredentials ? '' : ' style="display: none;"'; ?>>
                             <span class="va-balance-label">Your balance:</span>
                             <span id="va-balance-amount" class="va-balance-amount" data-testid="text-credit-balance">--</span>
                             <span class="va-balance-unit">credits</span>
@@ -588,7 +607,7 @@ if ($cancreate) {
                         <span id="va-progress-credit-formula" class="va-credit-formula" data-testid="text-progress-credit-formula"></span>
                         <span class="va-credit-cost-label">to generate content</span>
                     </div>
-                    <div class="va-credit-balance-box">
+                    <div class="va-credit-balance-box"<?php echo $hascredentials ? '' : ' style="display: none;"'; ?>>
                         <span class="va-balance-label">Your balance:</span>
                         <span id="va-progress-balance" class="va-balance-amount" data-testid="text-progress-balance">--</span>
                         <span class="va-balance-unit">credits</span>
@@ -625,7 +644,9 @@ if ($cancreate) {
                     <label for="va-ready-extra-instructions" class="va-label">Extra AI Instructions</label>
                     <textarea id="va-ready-extra-instructions" class="va-textarea" rows="3"
                         placeholder="Add or modify instructions for the AI to refine the generated questions..."></textarea>
-                    <small class="va-help">Edit these instructions and click Regenerate to refine your questions. First 3 regenerations are free.</small>
+                    <small class="va-help">Edit these instructions and click Regenerate to refine your questions. <?php
+                        echo $byokstate['text'] ? get_string('byok:regenhelp', 'mod_aivideoactivity') : 'First 3 regenerations are free.';
+                        ?></small>
                 </div>
                 <div class="va-regen-controls">
                     <button id="va-ready-regenerate-btn" class="va-btn va-btn-secondary">
@@ -682,7 +703,9 @@ if ($cancreate) {
                     <label for="va-edit-extra-instructions" class="va-label">Extra AI Instructions</label>
                     <textarea id="va-edit-extra-instructions" class="va-textarea" rows="3"
                         placeholder="Add or modify instructions for the AI to refine the generated questions..."></textarea>
-                    <small class="va-help">Edit these instructions and click Regenerate to refine your questions. First 3 regenerations are free.</small>
+                    <small class="va-help">Edit these instructions and click Regenerate to refine your questions. <?php
+                        echo $byokstate['text'] ? get_string('byok:regenhelp', 'mod_aivideoactivity') : 'First 3 regenerations are free.';
+                        ?></small>
                 </div>
                 <div class="va-regen-controls">
                     <button id="va-edit-regenerate-btn" class="va-btn va-btn-secondary">
@@ -850,7 +873,10 @@ if ($cancreate) {
                 <div class="va-settings-modal-footer">
                     <p id="va-settings-warning-text" class="va-settings-warning">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                        <span id="va-settings-warning-msg">Changing language will regenerate questions and uses credits.</span>
+                        <span id="va-settings-warning-msg"><?php
+                        echo $byokstate['text'] ? get_string('byok:settingswarning', 'mod_aivideoactivity')
+                            : 'Changing language will regenerate questions and uses credits.';
+                        ?></span>
                     </p>
                     <div class="va-settings-footer-actions">
                         <button id="va-settings-cancel-btn" class="va-btn va-btn-secondary">Cancel</button>
@@ -909,6 +935,14 @@ if ($cancreate) {
         'wwwroot' => $CFG->wwwroot,
         'sesskey' => sesskey(),
         'isTeacher' => true,
+        'byok' => $byokstate,
+        'byokStrings' => [
+            'formula' => get_string('js_byokformula', 'mod_aivideoactivity'),
+            'voiceformula' => get_string('js_byokvoiceformula', 'mod_aivideoactivity'),
+            'textformula' => get_string('js_byoktextformula', 'mod_aivideoactivity'),
+            'regen' => get_string('js_byokregen', 'mod_aivideoactivity'),
+            'nocredits' => get_string('js_byoknocredits', 'mod_aivideoactivity'),
+        ],
         'questionCount' => (int)$questioncount,
         'inProgressAttempts' => (int)$inprogresscount,
         'gradePass' => $gradepass,

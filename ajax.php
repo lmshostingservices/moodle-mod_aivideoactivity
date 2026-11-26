@@ -122,6 +122,11 @@ function aivideoactivity_report_usage($context, $reply, $description, $ref = '')
 
 switch ($action) {
     case 'getcredits':
+        // Bring your own AI: question writing on the site's own AI needs no LMS Labs balance.
+        if (\mod_aivideoactivity\byok::uses('text') && (strlen($siteid) === 0 || strlen($apikey) === 0)) {
+            echo json_encode(['ok' => true, 'credits' => null, 'ownAi' => \mod_aivideoactivity\byok::state()]);
+            break;
+        }
         // Debug: Check if credentials are configured (including whitespace-only check).
         if (strlen($siteid) === 0 || strlen($apikey) === 0) {
             echo json_encode([
@@ -163,7 +168,8 @@ switch ($action) {
         if ($httpcode === 200) {
             $result = json_decode($response, true);
             if (isset($result['credits'])) {
-                echo json_encode(['ok' => true, 'credits' => $result['credits']]);
+                echo json_encode(['ok' => true, 'credits' => $result['credits'],
+                    'ownAi' => \mod_aivideoactivity\byok::state()]);
             } else {
                 echo json_encode([
                     'ok' => false, 
@@ -295,6 +301,16 @@ switch ($action) {
             'scenarioJobRoles' => $scenariojobroles,
             'selectedFormats' => $selectedformats,
         ];
+        // Bring your own AI: the questions are written on the site's own AI, by a task the page polls.
+        if (\mod_aivideoactivity\byok::uses('text')) {
+            echo json_encode(\mod_aivideoactivity\byok::start_generation($payload, $context));
+            break;
+        }
+        // Questions on credits, narration on the site's own voice: LMS Labs writes them without voiceover.
+        $ownvoice = $payload['voiceoverEnabled'] && \mod_aivideoactivity\byok::uses('voice');
+        if ($ownvoice) {
+            $payload['voiceoverEnabled'] = false;
+        }
         $data = json_encode($payload);
 
         $curl = new \curl();
@@ -317,6 +333,9 @@ switch ($action) {
             if ($result === null) {
                 echo json_encode(['ok' => false, 'error' => 'Invalid API response']);
             } else {
+                if ($ownvoice && !empty($result['ok']) && !empty($result['jobId'])) {
+                    \mod_aivideoactivity\byok::narrate_later((string)$result['jobId'], $context, $voicelanguage, $voiceid);
+                }
                 echo json_encode($result);
             }
         } else {
@@ -329,6 +348,13 @@ switch ($action) {
     case 'status':
         // Check generation status.
         $jobid = required_param('jobId', PARAM_RAW); // pipeline-ignore: PARAM_RAW — opaque job identifier token compared server-side
+
+        // Bring your own AI: a generation (or its narration) running on the site's own AI.
+        $ownstatus = \mod_aivideoactivity\byok::status((string)$jobid, $context);
+        if ($ownstatus !== null) {
+            echo json_encode($ownstatus);
+            break;
+        }
 
         $url = $apibase . '/api/videoactivity-status/' . urlencode($jobid);
 
@@ -343,7 +369,9 @@ switch ($action) {
                 // A finished job: Client Portal (when installed) bills it once.
                 aivideoactivity_report_usage($context, $result, 'Video questions', (string)$jobid);
             }
-            echo json_encode($result);
+            // Written by LMS Labs, to be narrated on the site's own voice.
+            $ownstatus = is_array($result) ? \mod_aivideoactivity\byok::status((string)$jobid, $context, $result) : null;
+            echo json_encode($ownstatus ?? $result);
         } else {
             echo json_encode(['ok' => false, 'error' => 'Failed to check status']);
         }
@@ -815,6 +843,13 @@ switch ($action) {
             break;
         }
 
+        // Bring your own AI: narration on the site's own voice.
+        if (\mod_aivideoactivity\byok::uses('voice')) {
+            echo json_encode(\mod_aivideoactivity\byok::audio(['siteId' => $siteid, 'apiKey' => $apikey,
+                'questions' => $questionsdata, 'voiceLanguage' => $voicelanguage, 'voiceId' => $voiceid]));
+            break;
+        }
+
         $url = $apibase . '/api/videoactivity-regenerate-audio';
         $payload = json_encode([
             'siteId' => $siteid,
@@ -893,6 +928,13 @@ switch ($action) {
             break;
         }
 
+        // Bring your own AI: the clip comes from the site's own voice.
+        if (\mod_aivideoactivity\byok::uses('voice')) {
+            echo json_encode(\mod_aivideoactivity\byok::tts_single(['siteId' => $siteid, 'apiKey' => $apikey,
+                'text' => $tts_text, 'voiceLanguage' => $tts_voicelanguage, 'voiceId' => $tts_voiceid]));
+            break;
+        }
+
         $tts_url = $apibase . '/api/videoactivity-tts-single';
         $tts_payload = json_encode([
             'siteId'        => $siteid,
@@ -943,7 +985,7 @@ switch ($action) {
         }
 
         $url = $apibase . '/api/videoactivity-regenerate-settings';
-        $payload = json_encode([
+        $rwsbody = [
             'siteId' => $siteid,
             'apiKey' => $apikey,
             'questions' => $questionsdata,
@@ -951,7 +993,18 @@ switch ($action) {
             'voiceoverEnabled' => (bool)$voiceoverenabled,
             'voiceGender' => $voicegender,
             'voiceId' => $voiceid,
-        ]);
+        ];
+        // Bring your own AI: the rewrite runs on the site's own AI.
+        if (\mod_aivideoactivity\byok::uses('text')) {
+            echo json_encode(\mod_aivideoactivity\byok::regenerate('settings', $rwsbody, $context));
+            break;
+        }
+        // Rewritten by LMS Labs, narrated on the site's own voice.
+        $rwsownvoice = $voiceoverenabled && \mod_aivideoactivity\byok::uses('voice');
+        if ($rwsownvoice) {
+            $rwsbody['voiceoverEnabled'] = false;
+        }
+        $payload = json_encode($rwsbody);
 
         // BUG-REGEN-TIMEOUT (v1.0.82): The previous code had a PHP retry loop (3 attempts ×
         // CURLOPT_TIMEOUT 150s + sleep(5) between) that could run for up to 460 seconds. The JS
@@ -996,6 +1049,8 @@ switch ($action) {
         if ($rws_httpcode === 200) {
             if ($rws_result === null) {
                 echo json_encode(['ok' => false, 'error' => 'Invalid API response']);
+            } else if ($rwsownvoice && is_array($rws_result)) {
+                echo json_encode(\mod_aivideoactivity\byok::narrate_result($rws_result, $voicelanguage, $voiceid));
             } else {
                 echo json_encode($rws_result);
             }
@@ -1030,7 +1085,7 @@ switch ($action) {
         }
 
         $url = $apibase . '/api/videoactivity-regenerate-instructions';
-        $payload = json_encode([
+        $ribody = [
             'siteId' => $siteid,
             'apiKey' => $apikey,
             'activityId' => (string)$cm->instance,
@@ -1041,7 +1096,18 @@ switch ($action) {
             'voiceGender' => $voicegender,
             'voiceId' => $voiceid,
             'transcript' => $va_transcript,
-        ]);
+        ];
+        // Bring your own AI: the rewrite runs on the site's own AI.
+        if (\mod_aivideoactivity\byok::uses('text')) {
+            echo json_encode(\mod_aivideoactivity\byok::regenerate('instructions', $ribody, $context));
+            break;
+        }
+        // Rewritten by LMS Labs, narrated on the site's own voice.
+        $riownvoice = $voiceoverenabled && \mod_aivideoactivity\byok::uses('voice');
+        if ($riownvoice) {
+            $ribody['voiceoverEnabled'] = false;
+        }
+        $payload = json_encode($ribody);
 
         // BUG-REGEN-TIMEOUT (v1.0.82): Same fix as regeneratewithsettings above.
         // PHP retry loop (3×150s) ran far longer than the 90s JS AJAX timeout, causing JS to
@@ -1076,6 +1142,8 @@ switch ($action) {
         if ($ri_httpcode === 200) {
             if ($ri_result === null) {
                 echo json_encode(['ok' => false, 'error' => 'Invalid API response']);
+            } else if ($riownvoice && is_array($ri_result)) {
+                echo json_encode(\mod_aivideoactivity\byok::narrate_result($ri_result, $voicelanguage, $voiceid));
             } else {
                 echo json_encode($ri_result);
             }
@@ -1252,15 +1320,25 @@ switch ($action) {
         ]);
 
         set_time_limit(180);
-        $bs_ch = new \curl();
-        $bs_raw = $bs_ch->post($bs_url, $bs_payload, [
-            'CURLOPT_TIMEOUT' => 110,
-            'CURLOPT_CONNECTTIMEOUT' => 10,
-            'CURLOPT_HTTPHEADER' => ['Content-Type: application/json'],
-        ]);
-        $bs_err = $bs_ch->error;
-        $bs_info = $bs_ch->get_info();
-        $bs_httpcode = (int)$bs_info['http_code'];
+        if (\mod_aivideoactivity\byok::uses('voice')) {
+            // Bring your own AI: the clips come from the site's own voice.
+            $bs_raw = json_encode(\mod_aivideoactivity\byok::audio(['siteId' => $siteid, 'apiKey' => $apikey,
+                'questions' => [$bs_qdata], 'voiceLanguage' => $bs_voicelang, 'voiceId' => $bs_voiceid]));
+            $bs_err = '';
+            $bs_httpcode = 200;
+            $bsownvoice = true;
+        } else {
+            $bs_ch = new \curl();
+            $bs_raw = $bs_ch->post($bs_url, $bs_payload, [
+                'CURLOPT_TIMEOUT' => 110,
+                'CURLOPT_CONNECTTIMEOUT' => 10,
+                'CURLOPT_HTTPHEADER' => ['Content-Type: application/json'],
+            ]);
+            $bs_err = $bs_ch->error;
+            $bs_info = $bs_ch->get_info();
+            $bs_httpcode = (int)$bs_info['http_code'];
+            $bsownvoice = false;
+        }
 
         if ($bs_err || $bs_httpcode !== 200) {
             echo json_encode([
@@ -1273,7 +1351,7 @@ switch ($action) {
         }
 
         $bs_resp = json_decode($bs_raw, true);
-        if ($bs_httpcode === 200) {
+        if ($bs_httpcode === 200 && !$bsownvoice) {
             aivideoactivity_report_usage($context, $bs_resp, 'Voiceover regenerated');
         }
         if (!is_array($bs_resp) || empty($bs_resp['ok']) || empty($bs_resp['questions']) || empty($bs_resp['questions'][0])) {

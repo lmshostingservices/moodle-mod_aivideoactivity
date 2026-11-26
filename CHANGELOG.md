@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.143 (2026-11-26)
+
+- Added: Bring your own AI. With a Bring your own AI licence in AI Grader Central Config (1.1.0 or later), an administrator can run question writing, narration or both on the site's own AI provider (set up in Moodle's AI settings) instead of LMS Labs credits. The plugin runs the same question-writing steps as the LMS Labs service (the same prompts, format mix, answer shuffling, timestamp matching and narration), so questions come out the same way. Work on the site's own AI goes straight from the site to the provider and uses no LMS Labs credits. Anything left on credits still goes to LMS Labs.
+- The teacher page shows a "Your own AI" badge naming what runs on the site's own AI. The cost line drops the parts that use no credits, regenerations on the site's own AI are unlimited, and the credit balance is hidden when no LMS Labs credentials are set.
+- Question generation on the site's own AI runs as a background task, so the site's scheduled tasks (cron) must be running.
+
 ## 1.0.142 (2026-11-24)
 
 - Fixed: "All answers must be correct" never completed the activity on Moodle 4.x and 5.x, so learners stayed stuck after a perfect attempt. The rule is now a proper Moodle completion rule: it completes after a finished attempt with every question right, and it shows on the activity and in completion reports.
