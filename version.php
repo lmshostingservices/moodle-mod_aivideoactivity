@@ -814,8 +814,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_aivideoactivity';
-$plugin->version   = 2026112400;
+$plugin->version   = 2026112600;
 $plugin->requires = 2022041900; // Moodle 4.0
 $plugin->supported  = [400, 500];  // Moodle 4.0 to 5.x
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release   = '1.0.142';
+$plugin->release   = '1.0.143';
